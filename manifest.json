@@ -1,0 +1,36 @@
+{
+  "name": "CS AWS Roles Switcher",
+  "version": "0.0.2",
+  "manifest_version": 2,
+  "description": "Switch AWS roles easily",
+  "homepage_url": "http://creativestyle.de",
+  "icons": { "128": "logo.png" },
+  "externally_connectable": {
+    "matches": [
+      "https://*.aws.amazon.com/*"
+    ]
+  },
+  "permissions": [
+    "https://*.aws.amazon.com/*",
+    "tabs",
+    "storage"
+  ],
+  "web_accessible_resources": [
+    "injected.js"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "browser_action": {
+    "default_popup": "options.html"
+  },
+  "content_scripts" : [{
+      "matches" : [
+        "https://*.aws.amazon.com/*"
+      ],
+      "js" : [
+        "injector.js"
+      ]
+  }]    
+}

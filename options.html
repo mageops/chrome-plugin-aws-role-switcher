@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>AWS Role Switcher Settings</title>
+	<style>
+		#logo {
+			display: block;
+			margin: 0 auto 2rem auto;
+			font-weight: bold;
+			font-size: 1.2rem;
+			text-align: center;
+			font-style: italic;
+		}
+
+		#logo img {
+			margin-right: 0.3rem;
+			display: inline-block;
+			vertical-align: middle;
+			width: 3rem;
+		}
+
+		html {
+			font-size: 14px;
+		}
+
+		body {
+			font-size: 14px;
+			min-width: 20rem;
+			padding: 1rem;
+		}
+
+		label {
+			font-weight: bold;
+			text-transform: uppercase;
+		}
+
+		input, button {
+			font-size: 1rem;
+			box-sizing: border-box;
+			padding: 0.5rem 1rem;
+			border-radius: 0.3rem;
+			width: 100%;
+			display: block;
+			margin: 1rem 0 0 0;
+		}
+
+		input:focus, button:focus {
+			outline: none;
+			box-shadow: 0 0 1px 5px rgba(216, 19, 35, 0.1);
+			border-color: rgba(216, 19, 35, 0.3);
+		}
+
+		input {
+			border: solid 1px #ccc;
+
+		}
+
+		button {
+			transition: all ease-in 0.3s;
+
+			border: solid 1px #D00015;
+			background: #D50024;
+			color: #fff;
+			text-align: center;
+		}
+
+		button:active {
+			box-shadow: 0 0 1px 5px rgba(216, 19, 35, 0.1), 
+						inset 0 0 3px 1px rgba(0, 0, 0, 0.15);
+		}
+
+		button.success {
+			transition: all ease-in 0.15s;
+
+			border: solid 1px #12b302;
+			background: #16b904;
+			color: #fff;
+			text-align: center;
+		}
+
+		button.success:focus {
+			box-shadow: 0 0 1px 5px rgba(22, 185, 4, 0.1);
+			border-color: rgba(22, 185, 4, 0.3);
+		}
+
+		button.success:active {
+			box-shadow: 0 0 1px 5px rgba(22, 185, 4, 0.1), 
+						inset 0 0 3px 1px rgba(0, 0, 0, 0.15);
+		}
+	</style>
+</head>
+<body>
+	<div id="logo">
+		<img src="logo.png"/> AWS Role Switcher
+	</div>
+	<label>Role JSON URL</label>
+	<input type="text" id="role-json-url" placeholder="https://example.com/roles.json">	
+	<button id="save">Save</button>
+
+	<script src="options.js"></script>
+</body>
+</html>
