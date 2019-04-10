@@ -1,5 +1,40 @@
 (() => {
-	let rolesUrl = null;
+	let rolesUrl = null,
+		containerEl = null;
+
+	function $(what, data) {
+		let match = null;
+
+		if (match = what.match(/<([a-z]+)\/>/)) {
+			const el = document.createElement(match[1]);
+
+			if (typeof data !== 'undefined') {
+				if (typeof data.classNames !== 'undefined') {
+					el.classNames = data.classNames;
+				}
+
+				if (typeof data.attrs !== 'undefined') {
+					Object.keys(data.attrs).forEach(function(key) {
+						el.setAttribute(key, data.attrs[key]);
+					});
+				}
+			}
+
+			return el;
+		}
+
+		const els = document.querySelectorAll(what);
+
+		if (els.length === 0) {
+			return null;
+		}
+
+		if (els.length === 1) {
+			return els[0];
+		}
+
+		return els;
+	}
 
 	function getRolesUrl() {
 		if (null === rolesUrl) {
@@ -30,9 +65,9 @@
   			rolesUrl = url;
   			localStorage.setItem('cs-aws-roles-url', url);
 
-  			render(getTypeFilter());
+  			console.log('Roles URL has been updated, rerendering...');	
 
-  			console.log('Roles URL has been updated, rerendering...');
+  			render();
   		}
   	}
 
@@ -94,8 +129,15 @@
 		if (typeof icon === 'undefined') {
 			icon = 'http://www.creativestyle.pl/wp-content/themes/creativestyle/cs/img/favicon.png';
 		}
+
+		let el = $('<div/>', {
+			attrs: {
+				id: `awsc-recent-role-${index}`,
+				style: 'margin: 0.5rem 0;'
+			}
+		});
 		
-		return `<li id="awsc-recent-role-${index}">
+		el.innerHTML = `
 			<form action="https://signin.aws.amazon.com/switchrole" method="POST" target="_top">
 				<input type="hidden" name="action" value="switchFromBasis">
 				<input type="hidden" name="src" value="nav">
@@ -110,15 +152,16 @@
 				</label>
 				<input type="submit" class="awsc-role-submit awsc-role-display-name" id="awsc-recent-role-switch-${index}" name="displayName" value="${label}">
 			</form>
-		</li>`;		
+		`;		
+
+		return el;
 	}
 	
 	function renderRoles(roles, type) {
-		var switcherContainer = document.getElementById('awsc-username-menu-recent-roles');
+		var roleContainer = $('<div/>');
 		
-		switcherContainer.style = 'overflow-y: scroll; max-height: 25vh; border-bottom: solid 1px #ccc; margin-bottom: 1rem; width: 17rem; overflow-x: hidden;';
-		switcherContainer.innerHTML = '';
-		
+		roleContainer.style = 'overflow-y: scroll; max-height: 25vh; border-bottom: solid 1px #ccc; margin-bottom: 1rem; width: 17rem; overflow-x: hidden;';
+
 		if (type !== 'undefined' && type !== 'All') {
 			roles = roles.filter(function(r) { return r.type === type; });
 		}
@@ -126,17 +169,20 @@
 		roles = roles.sort(function(a, b) { return a.label < b.label ? -1 : 1; });
 		
 		roles.forEach(function(r, i) {
-			switcherContainer.innerHTML += renderRole(i, r.label, r.accountId, r.roleName, r.color, r.icon);
+			roleContainer.appendChild(renderRole(i, r.label, r.accountId, r.roleName, r.color, r.icon));
 		});
+
+		return roleContainer;
 	}
 	
-	function renderTypeSwitch(container, currentType, types) {
-		if (types.length === 1) {
+	function renderTypeSwitch(currentType, types) {
+		if (types.length < 2) {
 			return;
 		}
+
+		var typeContainer = $('<div/>');
 		
-		container.style = 'padding-bottom: 1rem; border-bottom: solid 1px #ccc; text-align: center;';
-		container.innerHTML = '';
+		typeContainer.style = 'padding-bottom: 1rem; border-bottom: solid 1px #ccc; text-align: center;';
 		
 		types.forEach((t, i) => {
 			var button = document.createElement('span');
@@ -155,32 +201,47 @@
 			});
 			
 			button.appendChild(document.createTextNode(t));
-			container.appendChild(button);
+			typeContainer.appendChild(button);
 		});
+
+		return typeContainer;
 	}
 	
-	function render(type) {
+	function render() {
+		const type = getTypeFilter();
+
 		let roleSwitchLink = document.getElementById('awsc-switch-role');
+
 		let recentRolesContainer = document.getElementById('awsc-username-menu-recent-roles');
 		let recentRolesLabel = document.getElementById('awsc-recent-roles-label');
-		
-		let container = document.createElement('div');
 
-		document.body.insertBefore(container, switchLink);
+		if (recentRolesContainer) {
+			recentRolesContainer.parentNode.removeChild(recentRolesContainer);
+		}
+
+		if (recentRolesLabel) {
+			recentRolesLabel.parentNode.removeChild(recentRolesLabel);
+		}
+
+		if (null === containerEl) {
+			containerEl = $('<div/>');
+			roleSwitchLink.parentNode.insertBefore(containerEl, roleSwitchLink);		
+		}
 
 		getRoles(function(roles, types) {
-			renderTypeSwitch(container, type, types);
-			renderRoles(container, roles, type);
-		});
-	}
+			containerEl.innerHTML = '';
 
-	function hasRecentRole() {
-		return null !== document.getElementById('awsc-username-menu-recent-roles');
+			const typesEl = renderTypeSwitch(type, types);
+			const rolesEl = renderRoles(roles, type);
+
+			containerEl.appendChild(typesEl);
+			containerEl.appendChild(rolesEl);
+		});
 	}
 
 	function init() {
 		registerEventListeners();
-		render(getTypeFilter());
+		render();
 
 		console.log('AWS Role Switcher is initiaized!');
 	}
