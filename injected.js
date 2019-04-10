@@ -36,6 +36,10 @@
 		return els;
 	}
 
+	$.remove = (element) => {
+		element.parentNode.removeChild(element);
+	};
+
 	function getRolesUrl() {
 		if (null === rolesUrl) {
 			rolesUrl = localStorage.getItem('cs-aws-roles-url');
@@ -72,8 +76,9 @@
   	}
 
 	function getTypes(roles) {
-		var types = roles.map(role => role.type)
-					.filter((value, index, self) => self.indexOf(value) === index);
+		let types = roles
+						.map(role => role.type)
+						.filter((value, index, self) => self.indexOf(value) === index);
 					
 		types.unshift('All');
 
@@ -158,7 +163,7 @@
 	}
 	
 	function renderRoles(roles, type) {
-		var roleContainer = $('<div/>');
+		const roleContainer = $('<div/>');
 		
 		roleContainer.style = 'overflow-y: scroll; max-height: 25vh; border-bottom: solid 1px #ccc; margin-bottom: 1rem; width: 17rem; overflow-x: hidden;';
 
@@ -180,7 +185,7 @@
 			return;
 		}
 
-		var typeContainer = $('<div/>');
+		const typeContainer = $('<div/>');
 		
 		typeContainer.style = 'padding-bottom: 1rem; border-bottom: solid 1px #ccc; text-align: center;';
 		
@@ -210,17 +215,16 @@
 	function render() {
 		const type = getTypeFilter();
 
-		let roleSwitchLink = document.getElementById('awsc-switch-role');
-
-		let recentRolesContainer = document.getElementById('awsc-username-menu-recent-roles');
-		let recentRolesLabel = document.getElementById('awsc-recent-roles-label');
+		let roleSwitchLink = $('#awsc-switch-role');
+		let recentRolesContainer = $('#awsc-username-menu-recent-roles');
+		let recentRolesLabel = $('#awsc-recent-roles-label');
 
 		if (recentRolesContainer) {
-			recentRolesContainer.parentNode.removeChild(recentRolesContainer);
+			$.remove(recentRolesContainer);
 		}
 
 		if (recentRolesLabel) {
-			recentRolesLabel.parentNode.removeChild(recentRolesLabel);
+			$.remove(recentRolesLabel);
 		}
 
 		if (null === containerEl) {
