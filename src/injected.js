@@ -47,7 +47,7 @@
 
 		return rolesUrl;
 	}
-	
+
 	function registerEventListeners() {
   		window.addEventListener('message', function(evt) {
 			if (evt.source != window) {
@@ -69,7 +69,7 @@
   			rolesUrl = url;
   			localStorage.setItem('cs-aws-roles-url', url);
 
-  			console.log('Roles URL has been updated, rerendering...');	
+  			console.log('Roles URL has been updated, rerendering...');
 
   			render();
   		}
@@ -79,12 +79,12 @@
 		let types = roles
 						.map(role => role.type)
 						.filter((value, index, self) => self.indexOf(value) === index);
-					
+
 		types.unshift('All');
 
 		return types;
 	}
-	
+
 	function getRoles(callback) {
 		if (!rolesUrl) {
 			console.log('Roles URL is absent, skipping');
@@ -92,17 +92,17 @@
 		}
 
 		roles = JSON.parse(sessionStorage.getItem('cs-aws-roles'));
-		
+
 		if (roles) {
 			return callback(roles, getTypes(roles));
 		}
 
 		console.log('Fetching AWS roles...');
-		
+
 		fetch(rolesUrl).then((response) => {
-			response.json().then((roles) => { 
+			response.json().then((roles) => {
 				sessionStorage.setItem('cs-aws-roles', JSON.stringify(roles));
-				
+
 				callback(roles, getTypes(roles));
 			})
 		})
@@ -121,7 +121,7 @@
 	function getCsrfToken() {
 		return AWSC.Auth.getMbtc();
 	}
-	
+
 	function getHomeUri() {
 		return AWSC.NavUrl.getRegionLinkHref();
 	}
@@ -130,7 +130,7 @@
 		if (typeof color === 'undefined') {
 			color = '3552CC';
 		}
-		
+
 		if (typeof icon === 'undefined') {
 			icon = 'http://www.creativestyle.pl/wp-content/themes/creativestyle/cs/img/favicon.png';
 		}
@@ -141,7 +141,7 @@
 				style: 'margin: 0.5rem 0;'
 			}
 		});
-		
+
 		el.innerHTML = `
 			<form action="https://signin.aws.amazon.com/switchrole" method="POST" target="_top">
 				<input type="hidden" name="action" value="switchFromBasis">
@@ -155,67 +155,68 @@
 				<label for="awsc-recent-role-switch-${index}" class="awsc-role-color" style="width:16px;height:16px;border:none;">
 					<img src="${icon}" style="width:16px;height:16px;">
 				</label>
-				<input type="submit" class="awsc-role-submit awsc-role-display-name" id="awsc-recent-role-switch-${index}" name="displayName" value="${label}">
+				<input type="submit" class="awsc-role-submit awsc-role-display-name" id="awsc-recent-role-switch-${index}"
+					name="displayName" value="${label}" style="color: #efefef; background-color: #232f3e; border: 0;">
 			</form>
-		`;		
+		`;
 
 		return el;
 	}
-	
+
 	function renderRoles(roles, type) {
 		const roleContainer = $('<div/>');
-		
-		roleContainer.style = 'overflow-y: scroll; max-height: 25vh; border-bottom: solid 1px #ccc; margin-bottom: 1rem; width: 17rem; overflow-x: hidden;';
+
+		roleContainer.style = 'overflow-y: scroll; max-height: 25vh; margin-bottom: 1rem; width: 20rem; overflow-x: hidden;';
 
 		if (type !== 'undefined' && type !== 'All') {
 			roles = roles.filter(function(r) { return r.type === type; });
 		}
-		
+
 		roles = roles.sort(function(a, b) { return a.label < b.label ? -1 : 1; });
-		
+
 		roles.forEach(function(r, i) {
 			roleContainer.appendChild(renderRole(i, r.label, r.accountId, r.roleName, r.color, r.icon));
 		});
 
 		return roleContainer;
 	}
-	
+
 	function renderTypeSwitch(currentType, types) {
 		if (types.length < 2) {
 			return;
 		}
 
 		const typeContainer = $('<div/>');
-		
+
 		typeContainer.style = 'padding-bottom: 1rem; border-bottom: solid 1px #ccc; text-align: center;';
-		
+
 		types.forEach((t, i) => {
 			var button = document.createElement('span');
-			
-			var style = 'color: #232E3E; display: inline-block; margin-right: 0.2rem; cursor: pointer; border-radius: 0.3rem;  padding: 0.2rem 0.4rem;';
-			
+
+			var style = 'color: #8f9fa1; display: inline-block; margin-right: 0.2rem; cursor: pointer; border-radius: 0.3rem;  padding: 0.2rem 0.4rem;';
+
 			if (t === currentType) {
 				style += 'background: #232E3E; color: #FFF;'
 			}
-			
+
 			button.style = style;
-			
+
 			button.addEventListener('click', () => {
 				saveTypeFilter(t);
 				render(t);
 			});
-			
+
 			button.appendChild(document.createTextNode(t));
 			typeContainer.appendChild(button);
 		});
 
 		return typeContainer;
 	}
-	
+
 	function render() {
 		const type = getTypeFilter();
 
-		let roleSwitchLink = $('#awsc-switch-role');
+		let roleSwitchLink = $('[data-testid=awsc-switch-roles]');
 		let recentRolesContainer = $('#awsc-username-menu-recent-roles');
 		let recentRolesLabel = $('#awsc-recent-roles-label');
 
@@ -229,7 +230,7 @@
 
 		if (null === containerEl) {
 			containerEl = $('<div/>');
-			roleSwitchLink.parentNode.insertBefore(containerEl, roleSwitchLink);		
+			roleSwitchLink.parentNode.insertBefore(containerEl, roleSwitchLink);
 		}
 
 		getRoles(function(roles, types) {

@@ -2,7 +2,6 @@
     "name": "aws-role-switcher-chrome-extension",
     "private": true,
     "scripts": {
-        "start": "meteor run"
     },
     "devDependencies": {
         "chrome-webstore-upload-cli": "^1.2.0",
