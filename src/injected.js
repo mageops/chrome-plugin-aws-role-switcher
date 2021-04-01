@@ -1,7 +1,36 @@
-(() => {
-	let rolesUrl = null,
-		containerEl = null;
+import { SimpleRpc } from './rpc.js';
 
+class Api {
+	#rpc;
+	constructor() {
+		this.#rpc = new SimpleRpc({});
+	}
+
+	getRoles() {
+		return this.#rpc.call('cs:awsrs:get-roles');
+	}
+
+	getFilterType() {
+		return this.#rpc.call('cs:awsrs:get-filter-type');
+	}
+
+	setFilterType(type) {
+		return this.#rpc.call('cs:awsrs:set-filter-type', {
+			type
+		});
+	}
+
+	fetchIcons(roleIds) {
+		return this.#rpc.call('cs:awsrs:fetch-icons', {
+			roleIds
+		});
+	}
+}
+
+(async () => {
+	const api = new Api();
+
+	let containerEl = null;
 	function $(what, data) {
 		let match = null;
 
@@ -14,7 +43,7 @@
 				}
 
 				if (typeof data.attrs !== 'undefined') {
-					Object.keys(data.attrs).forEach(function(key) {
+					Object.keys(data.attrs).forEach(function (key) {
 						el.setAttribute(key, data.attrs[key]);
 					});
 				}
@@ -40,82 +69,14 @@
 		element.parentNode.removeChild(element);
 	};
 
-	function getRolesUrl() {
-		if (null === rolesUrl) {
-			rolesUrl = localStorage.getItem('cs-aws-roles-url');
-		}
-
-		return rolesUrl;
-	}
-
-	function registerEventListeners() {
-  		window.addEventListener('message', function(evt) {
-			if (evt.source != window) {
-    			return;
-    		}
-
-    		if (typeof evt.data.name === 'undefined') {
-    			return;
-    		}
-
-    		if (evt.data.name === 'cs:awsrs:set-json-url') {
-    			onSetJsonUrl(evt.data.url);
-    		}
-		}, false);
-  	}
-
-  	function onSetJsonUrl(url) {
-  		if (url !== rolesUrl) {
-  			rolesUrl = url;
-  			localStorage.setItem('cs-aws-roles-url', url);
-
-  			console.log('Roles URL has been updated, rerendering...');
-
-  			render();
-  		}
-  	}
-
 	function getTypes(roles) {
 		let types = roles
-						.map(role => role.type)
-						.filter((value, index, self) => self.indexOf(value) === index);
+			.map(role => role.type)
+			.filter((value, index, self) => self.indexOf(value) === index);
 
 		types.unshift('All');
 
 		return types;
-	}
-
-	function getRoles(callback) {
-		if (!rolesUrl) {
-			console.log('Roles URL is absent, skipping');
-			return;
-		}
-
-		roles = JSON.parse(sessionStorage.getItem('cs-aws-roles'));
-
-		if (roles) {
-			return callback(roles, getTypes(roles));
-		}
-
-		console.log('Fetching AWS roles...');
-
-		fetch(rolesUrl).then((response) => {
-			response.json().then((roles) => {
-				sessionStorage.setItem('cs-aws-roles', JSON.stringify(roles));
-
-				callback(roles, getTypes(roles));
-			})
-		})
-	}
-
-	function getTypeFilter() {
-		const filter = localStorage.getItem('cs-aws-filter-type');
-
-		return filter ? filter : 'All';
-	}
-
-	function saveTypeFilter(type) {
-		localStorage.setItem('cs-aws-filter-type', type);
 	}
 
 	function getCsrfToken() {
@@ -129,10 +90,6 @@
 	function renderRole(index, label, accountId, roleName, color, icon) {
 		if (typeof color === 'undefined') {
 			color = '3552CC';
-		}
-
-		if (typeof icon === 'undefined') {
-			icon = 'http://www.creativestyle.pl/wp-content/themes/creativestyle/cs/img/favicon.png';
 		}
 
 		let el = $('<div/>', {
@@ -163,19 +120,20 @@
 		return el;
 	}
 
-	function renderRoles(roles, type) {
+	function renderRoles(roles, type, icons) {
+
 		const roleContainer = $('<div/>');
 
 		roleContainer.style = 'overflow-y: scroll; max-height: 25vh; margin-bottom: 1rem; width: 20rem; overflow-x: hidden;';
 
 		if (type !== 'undefined' && type !== 'All') {
-			roles = roles.filter(function(r) { return r.type === type; });
+			roles = roles.filter(function (r) { return r.type === type; });
 		}
 
-		roles = roles.sort(function(a, b) { return a.label < b.label ? -1 : 1; });
+		roles = roles.sort(function (a, b) { return a.label < b.label ? -1 : 1; });
 
-		roles.forEach(function(r, i) {
-			roleContainer.appendChild(renderRole(i, r.label, r.accountId, r.roleName, r.color, r.icon));
+		roles.forEach(function (r) {
+			roleContainer.appendChild(renderRole(r.id, r.label, r.accountId, r.roleName, r.color, icons[r.id]));
 		});
 
 		return roleContainer;
@@ -201,8 +159,8 @@
 
 			button.style = style;
 
-			button.addEventListener('click', () => {
-				saveTypeFilter(t);
+			button.addEventListener('click', async () => {
+				await api.setFilterType(t);
 				render(t);
 			});
 
@@ -213,8 +171,10 @@
 		return typeContainer;
 	}
 
-	function render() {
-		const type = getTypeFilter();
+	async function render() {
+		const type = await api.getFilterType();
+		const roles = await api.getRoles();
+		const icons = await api.fetchIcons(roles.map(a => a.id));
 
 		let roleSwitchLink = $('[data-testid=awsc-switch-roles]');
 		let recentRolesContainer = $('#awsc-username-menu-recent-roles');
@@ -233,20 +193,19 @@
 			roleSwitchLink.parentNode.insertBefore(containerEl, roleSwitchLink);
 		}
 
-		getRoles(function(roles, types) {
-			containerEl.innerHTML = '';
+		const types = getTypes(roles);
 
-			const typesEl = renderTypeSwitch(type, types);
-			const rolesEl = renderRoles(roles, type);
+		containerEl.innerHTML = '';
 
-			containerEl.appendChild(typesEl);
-			containerEl.appendChild(rolesEl);
-		});
+		const typesEl = renderTypeSwitch(type, types);
+		const rolesEl = renderRoles(roles, type, icons);
+
+		containerEl.appendChild(typesEl);
+		containerEl.appendChild(rolesEl);
 	}
 
-	function init() {
-		registerEventListeners();
-		render();
+	async function init() {
+		await render();
 
 		console.log('AWS Role Switcher is initiaized!');
 	}

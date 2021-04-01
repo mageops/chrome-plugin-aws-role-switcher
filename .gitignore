@@ -1,3 +1,4 @@
 /node_modules
 /.env
 /src/web-ext-artifacts
+/src/browser-polyfill.js

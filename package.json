@@ -2,7 +2,11 @@
     "name": "aws-role-switcher-chrome-extension",
     "private": true,
     "scripts": {
+        "postinstall": "cp node_modules/webextension-polyfill/dist/browser-polyfill.js src/browser-polyfill.js",
         "firefox-publish": "web-ext sign --channel=listed --api-key=$AMO_JWT_ISSUER --api-secret=$AMO_JWT_SECRET"
+    },
+    "dependencies": {
+        "webextension-polyfill": "0.7"
     },
     "devDependencies": {
         "web-ext": "^6",

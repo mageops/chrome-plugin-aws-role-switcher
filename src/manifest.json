@@ -12,11 +12,15 @@
   },
   "permissions": [
     "https://*.aws.amazon.com/*",
+    "https://s3.eu-central-1.amazonaws.com/*",
     "tabs",
     "storage"
   ],
   "web_accessible_resources": [
-    "injected.js"
+    "injected.js",
+    "rpc.js",
+    "injector.js",
+    "background.js"
   ],
   "options_ui": {
     "page": "options.html",
@@ -34,9 +38,17 @@
         "https://*.aws.amazon.com/*"
       ],
       "js" : [
-        "injector.js"
+        "browser-polyfill.js",
+        "loader.js"
       ]
   }],
+  "background": {
+    "scripts": [
+      "browser-polyfill.js",
+      "background-loader.js"
+    ],
+    "persistent": false
+  },
   "browser_specific_settings": {
     "gecko": {
       "id": "aws-roles-switcher@creativestyle.pl",
