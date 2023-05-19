@@ -204,7 +204,17 @@ class Api {
 		containerEl.appendChild(rolesEl);
 	}
 
+	async function sleep(time) {
+	        return new Promise((resolve) => setTimeout(resolve, time * 1000))
+        }
+
 	async function init() {
+	        let time = 2;
+                while($('[data-testid=awsc-switch-roles]') == null) {
+                        console.log('AWS Role Switcher is waiting for AWS console load');
+                        await sleep(time);
+                        time = Math.min(time * 2, 10);
+                }
 		await render();
 
 		console.log('AWS Role Switcher is initiaized!');
